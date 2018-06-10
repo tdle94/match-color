@@ -55,11 +55,9 @@ class StartScreen: SKScene {
         for touch: AnyObject in touches {
             let point = touch.location(in: self)
             let nodeUserTapped = atPoint(point)
-
-            if (nodeUserTapped.name == "Play") {
-                let transition:SKTransition = SKTransition.fade(withDuration: 1)
-                self.view?.presentScene(playScreen!, transition: transition)
-            }
+            
+            let transition:SKTransition = SKTransition.fade(withDuration: 1)
+            self.view?.presentScene(playScreen!, transition: transition)
         }
     }
     
