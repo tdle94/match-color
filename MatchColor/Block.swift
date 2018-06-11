@@ -17,21 +17,22 @@ class Block {
     private var side: CGFloat
     private var score: Int
     private var scoreLabel: SKLabelNode = SKLabelNode()
-    private let blockCategory: UInt32
+    private var maxScore: Int = 100
+
     
-    init(x: CGFloat, y: CGFloat, side_: CGFloat,  score_: Int) {
+    init(x: CGFloat, y: CGFloat, side_: CGFloat) {
         
         side = side_
-        blockCategory = 0x1 << 0    // 1
+
         // random score
-        score = Int(arc4random_uniform(UInt32(score_)))
+        score = Int(arc4random_uniform(UInt32(maxScore)))
     
         // initialize square
         square = SKShapeNode(rectOf: CGSize(width: side, height: side))
         square.name = "square"
         square.position = CGPoint(x: x, y: y)
         square.fillColor = randomColor()
-        square.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: side, height: side))
+
     
 
         // initialize text score inside square
@@ -42,11 +43,12 @@ class Block {
         scoreLabel.position = CGPoint(x: square.frame.midX, y: square.frame.midY)
     }
     
-    init(x: CGFloat, y: CGFloat, side_: CGFloat, color: SKColor, score_: Int) {
+    init(x: CGFloat, y: CGFloat, side_: CGFloat, color: SKColor) {
+        
         side = side_
-        blockCategory = 0x1 << 0    // 1
+
         // random score
-        score = Int(arc4random_uniform(UInt32(score_)))
+        score = Int(arc4random_uniform(UInt32(maxScore)))
         
         // initialize square
         square = SKShapeNode(rectOf: CGSize(width: side, height: side))
@@ -85,6 +87,10 @@ class Block {
     
     public func getColor() -> SKColor {
         return square.fillColor
+    }
+    
+    public func getBlock() -> SKShapeNode {
+        return square
     }
     
     public func randomColor(matchColor: SKColor) -> SKColor {
@@ -153,7 +159,4 @@ class Block {
         return randomColor
     }
     
-    public func getBlock() -> SKShapeNode {
-        return square
-    }
 }

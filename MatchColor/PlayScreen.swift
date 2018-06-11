@@ -1,4 +1,4 @@
-//
+ //
 //  PlayView.swift
 //  MatchColor
 //
@@ -14,17 +14,20 @@ class PlayScreen: SKScene {
     private var uneatenSnake = [Snake]()
     private var blocks = [Block]()
     private var mycamera: SKCameraNode = SKCameraNode()
-    private var dyValue: CGFloat = 10
+    private var dyValue: CGFloat = 5
+    private var dxValue: CGFloat = 0
     private var maxSpeedY: CGFloat = 500
+    private var minSpeedY: CGFloat = 25
     private var barricaded = false
     private let blocksAcrossScreen: Int = 5
-    
+    private var score: Int = 0
+    private var scoreLabel: SKLabelNode = SKLabelNode()
     
     override init(size: CGSize) {
         super.init(size: size)
         let snakeHead = Snake(x: frame.midX, y: frame.minY)
-        
         prolongSnake(newSnake: snakeHead)
+        self.addChild(scoreLabel)
     }
     
     /**
@@ -33,10 +36,10 @@ class PlayScreen: SKScene {
     public func barricade() {
         let side: CGFloat = frame.maxX / CGFloat(blocksAcrossScreen)
         let snakeHeadColor = snakes[0].getColor()
-        var newBlock = Block(x: frame.minX+side/2, y: frame.maxY * 2  + snakes[0].getPosition().y, side_: side, color:snakeHeadColor, score_: 5)
+        var newBlock = Block(x: frame.minX+side/2, y: frame.maxY * 2  + snakes[0].getPosition().y, side_: side, color:snakeHeadColor)
         appendNewBlock(newBlock: newBlock)
         for _ in 0...3 {
-            newBlock = Block(x: (blocks.last?.getPosition().x)! + side, y: frame.maxY * 2 + snakes[0].getPosition().y, side_: side, color:snakeHeadColor, score_: 5)
+            newBlock = Block(x: (blocks.last?.getPosition().x)! + side, y: frame.maxY * 2 + snakes[0].getPosition().y, side_: side, color:snakeHeadColor)
             appendNewBlock(newBlock: newBlock)
         }
     }
@@ -79,7 +82,7 @@ class PlayScreen: SKScene {
         dyValue += 0.5
         
         for i in 0...snakes.count-1 {
-            snakes[i].getSnake().physicsBody?.velocity = CGVector(dx: 0, dy: dyValue)
+            snakes[i].translateYForever(points: CGVector(dx: 0, dy: dyValue))
         }
         
         if (blocks.count > 0) {
@@ -107,7 +110,7 @@ class PlayScreen: SKScene {
     */
     private func removeUneatenSnake() {
         for (i, _) in uneatenSnake.enumerated().reversed() {
-            if (uneatenSnake[i].getPosition().y + frame.midY < snakes[0].getPosition().y) {
+            if (uneatenSnake[i].getPosition().y + frame.midY/2 < snakes[0].getPosition().y) {
                 self.removeChildren(in: [uneatenSnake[i].getSnake()])
                 uneatenSnake.remove(at: i)
             }
@@ -126,28 +129,46 @@ class PlayScreen: SKScene {
             if (block.contains(snakeHead.position) && snakeHead.fillColor != block.fillColor) {     // keep removing snake's head until colors match
                 self.removeChildren(in: [snakeHead])
                 snakes.removeFirst()                    // remove snakes head
+                dyValue = minSpeedY
             }
             else if (block.contains(snakeHead.position) && snakeHead.fillColor == block.fillColor) {        // colors match remove block
                 self.removeChildren(in: [scoreLabel, block, snakeHead])
                 blocks.remove(at: i)        // remove block
                 snakes.removeFirst()        // remove snakes head
+                updateScore()
             }
         }
+    }
+    
+    /*
+    * Update player score
+    */
+    public func updateScore() {
+        self.removeChildren(in: [scoreLabel])
+        scoreLabel = SKLabelNode()
+        score += 1
+        scoreLabel.text = "\(score)"
+        scoreLabel.fontName = "AvenirNext-Bold"
+        scoreLabel.fontSize = 30
+        scoreLabel.position = CGPoint(x: frame.maxX - 20, y: snakes[0].getPosition().y + frame.maxY - 400)
+        self.addChild(scoreLabel)
     }
     
     /*
     *   Check for collision with scatter snakes
     */
     public func handleSnakeCollision() {
-        let headSnake = snakes[0]
+
         if (uneatenSnake.count == 0) {
             return
         }
         
+        let headSnake = snakes[0]
+        
         for (i, _) in uneatenSnake.enumerated().reversed() {
             let uneaten = uneatenSnake[i].getSnake()
             let tail = snakes[snakes.count-1]
-            if (uneaten .contains(headSnake.getPosition())) {
+            if (uneaten.contains(headSnake.getPosition()) || headSnake.isCollided(snake: uneatenSnake[i])) {
                 let newSnake = Snake(x: tail.getPosition().x, y: tail.getPosition().y - tail.getRadius()*2, color: uneaten.fillColor)
                 self.prolongSnake(newSnake: newSnake)
                 self.removeChildren(in: [uneaten ])
@@ -164,7 +185,7 @@ class PlayScreen: SKScene {
         let snakeHeadY = Int(snakes[0].getPosition().y)
        
         if (dyValue > maxSpeedY) {
-            dyValue = 10
+            dyValue = minSpeedY
         }
        
         if (!barricaded) {
@@ -190,11 +211,11 @@ class PlayScreen: SKScene {
         else {
             blockNum -= 2
         }
-        for _ in 0...blockNum {
-            let snakeHeadY = UInt32(snakes[0].getPosition().y)
-            let max = snakeHeadY + UInt32(frame.midY)
+        for _ in 0...blockNum+1 {
+            let min = UInt32(snakes[0].getPosition().y)
+            let max = UInt32(blocks[0].getPosition().y - blocks[0].getHeight())
             let randomX = CGFloat(arc4random_uniform(UInt32(frame.maxX)))
-            let randomY = CGFloat(arc4random_uniform(max) + snakeHeadY)
+            let randomY = CGFloat(arc4random_uniform(max) + min)
             let newSnake = Snake(x: randomX, y: randomY)
             addUneatenSnake(unEatean: newSnake)
         }
@@ -206,20 +227,26 @@ class PlayScreen: SKScene {
     * block.
     */
     public func matchSnakeWithBlock() {
-        let snakeHeadY = UInt32(snakes[0].getPosition().y)
-        let max = snakeHeadY + UInt32(frame.midY)
+        let min = UInt32(snakes[0].getPosition().y)
+        let max = UInt32(blocks[0].getPosition().y)
         let randomX = CGFloat(arc4random_uniform(UInt32(frame.maxX)))
-        let randomY = CGFloat(arc4random_uniform(max) + snakeHeadY)
+        let randomY = CGFloat(arc4random_uniform(max) + min)
         let newSnake = Snake(x: randomX, y: randomY, color: blocks[0].getColor())
         addUneatenSnake(unEatean: newSnake)
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         let touch: UITouch = touches.first!
-        let positionInScene = touch.location(in: self)
+        var positionInScene = touch.location(in: self)
         
-        for i in 0...snakes.count-1 {
-            snakes[i].translateX(x: positionInScene.x)
+        snakes[0].updatePosition(points: CGPoint(x: positionInScene.x, y: positionInScene.y))
+        if (snakes.count == 1) {
+            return
+        }
+
+        for i in 1...snakes.count-1 {
+            positionInScene = CGPoint(x: positionInScene.x,  y: positionInScene.y-10)
+            snakes[i].updatePosition(points: positionInScene)
         }
        
     }

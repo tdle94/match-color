@@ -17,7 +17,7 @@ class Snake {
     
     init(x: CGFloat, y: CGFloat) {
         score = 0
-        
+       
         circle = SKShapeNode(circleOfRadius: radius)
         circle.name = "snake"
         circle.position = CGPoint(x: x, y: y)
@@ -27,7 +27,6 @@ class Snake {
         circle.physicsBody = SKPhysicsBody(circleOfRadius: 10)
         circle.physicsBody?.affectedByGravity = false
         circle.physicsBody?.collisionBitMask = 0
-        
     }
     
     init(x: CGFloat, y: CGFloat, color: SKColor) {
@@ -42,7 +41,6 @@ class Snake {
         circle.physicsBody = SKPhysicsBody(circleOfRadius: 10)
         circle.physicsBody?.affectedByGravity = false
         circle.physicsBody?.collisionBitMask = 0
-
     }
     
     public func getRadius() -> CGFloat {
@@ -108,10 +106,30 @@ class Snake {
         return circle.fillColor
     }
     
-    public func translateX(x: CGFloat) {
+    public func updatePosition(points: CGPoint) {
         let duration: TimeInterval = 0.5
-        let move = SKAction.moveTo(x: x, duration: duration)
-        
-        circle.run(move)
+        let distX: CGFloat = points.x - circle.position.x
+        let action = SKAction.moveTo(x: circle.position.x + distX, duration: duration)
+       
+        circle.run(action)
+
+
     }
+    
+    
+    public func translateYForever(points: CGVector) {
+        
+       circle.physicsBody?.velocity = CGVector(dx: points.dx, dy: points.dy)
+    }
+    
+    public func isCollided(snake: Snake) -> Bool {
+ 
+        let adjacent = abs(snake.getPosition().x - self.circle.position.x)
+        let opposite = abs(snake.getPosition().y - self.circle.position.y)
+        let hypotenuse = Int(sqrt(adjacent*adjacent + opposite*opposite))
+        let radiusOfTwoSnake = Int(self.radius * 2)
+        
+        return hypotenuse <= radiusOfTwoSnake
+    }
+   
 }
