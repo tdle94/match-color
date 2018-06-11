@@ -12,11 +12,9 @@ import SpriteKit
 
 class Snake {
     private var circle: SKShapeNode     // snake represent as circle
-    private var score: UInt32
     private var radius: CGFloat = 10
     
     init(x: CGFloat, y: CGFloat) {
-        score = 0
        
         circle = SKShapeNode(circleOfRadius: radius)
         circle.name = "snake"
@@ -30,7 +28,6 @@ class Snake {
     }
     
     init(x: CGFloat, y: CGFloat, color: SKColor) {
-        score = 0
 
         circle = SKShapeNode(circleOfRadius: 10)
         circle.name = "snake"
@@ -90,13 +87,7 @@ class Snake {
         return circle.position
     }
     
-    public func setScore(newScore: UInt32) {
-        score = newScore
-    }
-    
-    public func getScore() -> UInt32 {
-        return score
-    }
+   
     
     public func getSnake() -> SKShapeNode {
         return circle

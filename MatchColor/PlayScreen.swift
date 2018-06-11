@@ -81,6 +81,8 @@ class PlayScreen: SKScene {
         camera?.position.x = frame.midX
         dyValue += 0.5
         
+        scoreLabel.physicsBody?.velocity = CGVector(dx: 0, dy: dyValue)
+        
         for i in 0...snakes.count-1 {
             snakes[i].translateYForever(points: CGVector(dx: 0, dy: dyValue))
         }
@@ -132,10 +134,10 @@ class PlayScreen: SKScene {
                 dyValue = minSpeedY
             }
             else if (block.contains(snakeHead.position) && snakeHead.fillColor == block.fillColor) {        // colors match remove block
+                updateScore(textScore: blocks[i].getScoreLabel().text!)
                 self.removeChildren(in: [scoreLabel, block, snakeHead])
                 blocks.remove(at: i)        // remove block
                 snakes.removeFirst()        // remove snakes head
-                updateScore()
             }
         }
     }
@@ -143,14 +145,16 @@ class PlayScreen: SKScene {
     /*
     * Update player score
     */
-    public func updateScore() {
+    public func updateScore(textScore: String) {
         self.removeChildren(in: [scoreLabel])
         scoreLabel = SKLabelNode()
-        score += 1
-        scoreLabel.text = "\(score)"
+        scoreLabel.physicsBody = SKPhysicsBody(circleOfRadius: 10)
+        scoreLabel.physicsBody?.affectedByGravity = false
+        scoreLabel.physicsBody?.collisionBitMask = 0
+        scoreLabel.text = textScore
         scoreLabel.fontName = "AvenirNext-Bold"
         scoreLabel.fontSize = 30
-        scoreLabel.position = CGPoint(x: frame.maxX - 20, y: snakes[0].getPosition().y + frame.maxY - 400)
+        scoreLabel.position = CGPoint(x: frame.maxX - 20, y: snakes[0].getPosition().y + frame.midY)
         self.addChild(scoreLabel)
     }
     
@@ -188,6 +192,8 @@ class PlayScreen: SKScene {
             dyValue = minSpeedY
         }
        
+        
+        
         if (!barricaded) {
             barricade()
             matchSnakeWithBlock()

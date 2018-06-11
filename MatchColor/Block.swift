@@ -17,7 +17,7 @@ class Block {
     private var side: CGFloat
     private var score: Int
     private var scoreLabel: SKLabelNode = SKLabelNode()
-    private var maxScore: Int = 100
+    private var maxScore: Int = 10
 
     
     init(x: CGFloat, y: CGFloat, side_: CGFloat) {
