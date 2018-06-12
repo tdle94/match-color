@@ -54,7 +54,7 @@ class Block {
         square = SKShapeNode(rectOf: CGSize(width: side, height: side))
         square.name = "square"
         square.position = CGPoint(x: x, y: y)
-        square.fillColor = randomColor(matchColor: color)
+        square.fillColor = color
         
         
         // initialize text score inside square

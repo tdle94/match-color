@@ -35,13 +35,39 @@ class PlayScreen: SKScene {
     */
     public func barricade() {
         let side: CGFloat = frame.maxX / CGFloat(blocksAcrossScreen)
-        let snakeHeadColor = snakes[0].getColor()
-        var newBlock = Block(x: frame.minX+side/2, y: frame.maxY * 2  + snakes[0].getPosition().y, side_: side, color:snakeHeadColor)
-        appendNewBlock(newBlock: newBlock)
-        for _ in 0...3 {
-            newBlock = Block(x: (blocks.last?.getPosition().x)! + side, y: frame.maxY * 2 + snakes[0].getPosition().y, side_: side, color:snakeHeadColor)
+        let randomColor = randColorSnakeBody()
+        let randomIndex = Int(arc4random_uniform(4))
+        let snakeHeadY = snakes[0].getPosition().y
+        var newBlock: Block
+        
+        for i in 0...4 {
+            if (i == 0) {
+                if (randomIndex == 0) {
+                    newBlock = Block(x: frame.minX+side/2, y: frame.maxY * 2  + snakeHeadY, side_: side, color: randomColor)
+                }
+                else {
+                     newBlock = Block(x: frame.minX+side/2, y: frame.maxY * 2  + snakeHeadY, side_: side)
+                }
+            }
+            else {
+                if (i == randomIndex) {
+                    newBlock = Block(x: (blocks.last?.getPosition().x)! + side, y: frame.maxY * 2 + snakeHeadY, side_: side, color: randomColor)
+                }
+                else {
+                    newBlock = Block(x: (blocks.last?.getPosition().x)! + side, y: frame.maxY * 2  + snakeHeadY, side_: side)
+                }
+            }
             appendNewBlock(newBlock: newBlock)
         }
+    }
+    
+    /**
+    * Random color from snake's body
+    */
+    public func randColorSnakeBody() -> SKColor {
+        let snakeLength = UInt32(snakes.count)
+        let randomBodyPart = Int(arc4random_uniform(snakeLength))
+        return snakes[randomBodyPart].getColor()
     }
     
     /**
@@ -49,6 +75,15 @@ class PlayScreen: SKScene {
     */
     public func appendNewBlock(newBlock: Block) {
         blocks.append(newBlock)
+        self.addChild(newBlock.getBlock())
+        self.addChild(newBlock.getScoreLabel())
+    }
+    
+    /**
+    * Create new block and insert to the list
+    */
+    public func insertNewBlock(newBlock: Block, i: Int) {
+        blocks.insert(newBlock, at: i)
         self.addChild(newBlock.getBlock())
         self.addChild(newBlock.getScoreLabel())
     }
@@ -111,7 +146,9 @@ class PlayScreen: SKScene {
     */
     private func removeBarricade() {
         for (i, _) in blocks.enumerated().reversed() {
-            if (blocks[i].getPosition().y < snakes[0].getPosition().y) {
+            let block = blocks[i]
+            if (block.getPosition().y < snakes[0].getPosition().y) {
+                self.removeChildren(in: [block.getBlock(), block.getScoreLabel()])
                 blocks.remove(at: i)
             }
         }
@@ -130,7 +167,7 @@ class PlayScreen: SKScene {
     }
     
     /*
-    * Check for collision with blocks
+    * Check for snake'head collision with blocks
     */
     public func handleBlockCollision() {
         for (i, _) in blocks.enumerated().reversed() {
@@ -141,19 +178,19 @@ class PlayScreen: SKScene {
             // keep removing snake's head until color of a block match with color of snake's body
             if (block.contains(snakeHead.position) && snakeHead.fillColor != block.fillColor) {
                 self.removeChildren(in: [snakeHead])
-                snakes.removeFirst()                    // remove snakes head
+                snakes.removeFirst()
                 dyValue -= minSpeedY
             }
             else if (snakes.count > 1 && block.contains(snakeHead.position) && snakeHead.fillColor == block.fillColor) {    // colors match remove block
                 updateScore(textScore: blocks[i].getScoreLabel().text!)
                 self.removeChildren(in: [scoreLabel, block, snakeHead])
-                blocks.remove(at: i)        // remove block
-                snakes.removeFirst()        // remove snakes head
+                blocks.remove(at: i)
+                snakes.removeFirst()
             }
-            else if (snakes.count == 1 && block.contains(snakeHead.position) && snakeHead.fillColor == block.fillColor) {
+            else if (snakes.count == 1 && block.contains(snakeHead.position) && snakeHead.fillColor == block.fillColor) {   // only snake's head left
                 updateScore(textScore: blocks[i].getScoreLabel().text!)
                 self.removeChildren(in: [scoreLabel, block])
-                blocks.remove(at: i)        // remove block
+                blocks.remove(at: i)
             }
         }
     }
@@ -163,14 +200,21 @@ class PlayScreen: SKScene {
     */
     public func updateScore(textScore: String) {
         self.removeChildren(in: [scoreLabel])
+        
         scoreLabel = SKLabelNode()
         scoreLabel.physicsBody = SKPhysicsBody(circleOfRadius: 10)
         scoreLabel.physicsBody?.affectedByGravity = false
         scoreLabel.physicsBody?.collisionBitMask = 0
-        scoreLabel.text = textScore
         scoreLabel.fontName = "AvenirNext-Bold"
         scoreLabel.fontSize = 30
         scoreLabel.position = CGPoint(x: frame.maxX - 30, y: snakes[0].getPosition().y + frame.maxY/3)
+        if (scoreLabel.text != nil) {
+            let score = Int(scoreLabel.text!)! + Int(textScore)!
+            scoreLabel.text = String(score)
+        }
+        else {
+            scoreLabel.text = textScore
+        }
         self.addChild(scoreLabel)
     }
     
