@@ -12,7 +12,7 @@ import SpriteKit
 
 class Snake {
     private var circle: SKShapeNode     // snake represent as circle
-    private var radius: CGFloat = 10
+    private var radius: CGFloat = 12
     
     init(x: CGFloat, y: CGFloat) {
        
@@ -22,20 +22,20 @@ class Snake {
         circle.strokeColor = SKColor.black
         circle.glowWidth = 1.0
         circle.fillColor = randomColor()
-        circle.physicsBody = SKPhysicsBody(circleOfRadius: 10)
+        circle.physicsBody = SKPhysicsBody(circleOfRadius: radius)
         circle.physicsBody?.affectedByGravity = false
         circle.physicsBody?.collisionBitMask = 0
     }
     
     init(x: CGFloat, y: CGFloat, color: SKColor) {
 
-        circle = SKShapeNode(circleOfRadius: 10)
+        circle = SKShapeNode(circleOfRadius: radius)
         circle.name = "snake"
         circle.position = CGPoint(x: x, y: y)
         circle.strokeColor = SKColor.black
         circle.glowWidth = 1.0
         circle.fillColor = color
-        circle.physicsBody = SKPhysicsBody(circleOfRadius: 10)
+        circle.physicsBody = SKPhysicsBody(circleOfRadius: radius)
         circle.physicsBody?.affectedByGravity = false
         circle.physicsBody?.collisionBitMask = 0
     }
@@ -97,22 +97,36 @@ class Snake {
         return circle.fillColor
     }
     
+    /*
+    * User swipe left and right
+    */
     public func updatePosition(points: CGPoint) {
-        let duration: TimeInterval = 0.5
+
         let distX: CGFloat = points.x - circle.position.x
-        let action = SKAction.moveTo(x: circle.position.x + distX, duration: duration)
-       
-        circle.run(action)
 
-
+        circle.position.x += distX/10
     }
     
+    /*
+    * Follow snake ahead
+    */
+    public func followSnakeAhead(points: CGPoint) {
+        let distX: CGFloat = points.x - circle.position.x
+        
+        circle.position.x += distX/4
+    }
     
+    /*
+    * Going up forever
+    */
     public func translateYForever(points: CGVector) {
         
        circle.physicsBody?.velocity = CGVector(dx: points.dx, dy: points.dy)
     }
     
+    /*
+    *  Check for collision with uneaten snake
+    */
     public func isCollided(snake: Snake) -> Bool {
  
         let adjacent = abs(snake.getPosition().x - self.circle.position.x)
