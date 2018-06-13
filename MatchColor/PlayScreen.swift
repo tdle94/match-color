@@ -135,42 +135,6 @@ class PlayScreen: SKScene {
    
         self.handleBlockCollision()
         self.handleSnakeCollision()
-        //self.removeBarricade()              // remove blocks when snake already passed them
-       // self.removeUneatenSnake()           // remove uneaten snake when snake already passed them
-        
-    }
-    
-    /**
-    * Remove barricade. A barricade consist of 5 blocks
-    */
-    private func removeBarricade() {
-        
-        if (gameOver) {
-            return
-        }
-        for (i, _) in blocks.enumerated().reversed() {
-            let block = blocks[i]
-            if (block.getPosition().y < snakes[0].getPosition().y) {
-                self.removeChildren(in: [block.getBlock(), block.getScoreLabel()])
-                blocks.remove(at: i)
-            }
-        }
-    }
-    
-    /**
-    * Remove uneaten snake
-    */
-    private func removeUneatenSnake() {
-
-        if (gameOver) {
-          return
-        }
-        for (i, _) in uneatenSnake.enumerated().reversed() {
-            if (uneatenSnake[i].getPosition().y + frame.midY/2 < snakes[0].getPosition().y) {
-                self.removeChildren(in: [uneatenSnake[i].getSnake()])
-                uneatenSnake.remove(at: i)
-            }
-        }
     }
     
     /*
@@ -280,12 +244,12 @@ class PlayScreen: SKScene {
        
         if (blocks.count > 0 && snakes[0].getPosition().y - blocks[0].getPosition().y > 200) {
             self.removeAllChildren()
-            randomSnakeOnScreen()
-            barricade()
+            self.barricade()
+            self.randomSnakeOnScreen()
         }
         else if (blocks.count == 0 && !barricaded){
-            barricade()
-            randomSnakeOnScreen()
+            self.barricade()
+            self.randomSnakeOnScreen()
         }
         
     }
@@ -294,7 +258,6 @@ class PlayScreen: SKScene {
         let snakesCopy = snakes
         super.removeAllChildren()
         blocks.removeAll()
-        print("remove all: \(blocks.count) ")
         uneatenSnake.removeAll()
         for i in 0...snakesCopy.count-1 {
             self.addChild(snakesCopy[i].getSnake())
@@ -328,10 +291,13 @@ class PlayScreen: SKScene {
     
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if (gameOver) {
+            return
+        }
         let touch: UITouch = touches.first!
         let positionInScene = touch.location(in: self)
 
-       
+        
         snakes[0].updatePosition(points: CGPoint(x: positionInScene.x, y: positionInScene.y))       
     }
     
