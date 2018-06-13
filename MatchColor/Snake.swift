@@ -13,9 +13,10 @@ import SpriteKit
 class Snake {
     private var circle: SKShapeNode     // snake represent as circle
     private var radius: CGFloat = 12
+    private var explosion: [Explosion]
     
     init(x: CGFloat, y: CGFloat) {
-       
+        explosion = [Explosion(), Explosion(), Explosion(), Explosion()]
         circle = SKShapeNode(circleOfRadius: radius)
         circle.name = "snake"
         circle.position = CGPoint(x: x, y: y)
@@ -25,10 +26,11 @@ class Snake {
         circle.physicsBody = SKPhysicsBody(circleOfRadius: radius)
         circle.physicsBody?.affectedByGravity = false
         circle.physicsBody?.collisionBitMask = 0
+
     }
     
     init(x: CGFloat, y: CGFloat, color: SKColor) {
-
+        explosion = [Explosion(), Explosion(), Explosion(), Explosion()]
         circle = SKShapeNode(circleOfRadius: radius)
         circle.name = "snake"
         circle.position = CGPoint(x: x, y: y)
@@ -38,6 +40,17 @@ class Snake {
         circle.physicsBody = SKPhysicsBody(circleOfRadius: radius)
         circle.physicsBody?.affectedByGravity = false
         circle.physicsBody?.collisionBitMask = 0
+    }
+    
+    public func explode(playScreen: PlayScreen) {
+        let x = circle.position.x
+        let y = circle.position.y
+        let color = circle.fillColor
+        explosion[0].explodeAt(x: x, y: y, color: color, impulse: CGVector(dx: 2, dy: 2), playScreen: playScreen)
+        explosion[1].explodeAt(x: x, y: y, color: color, impulse: CGVector(dx: -2, dy: 2), playScreen: playScreen)
+        explosion[2].explodeAt(x: x, y: y, color: color, impulse: CGVector(dx: 2, dy: -2), playScreen: playScreen)
+        explosion[3].explodeAt(x: x, y: y, color: color, impulse: CGVector(dx: -2, dy: -2), playScreen: playScreen)
+        
     }
     
     public func getRadius() -> CGFloat {
@@ -104,7 +117,7 @@ class Snake {
 
         let distX: CGFloat = points.x - circle.position.x
 
-        circle.position.x += distX/10
+        circle.position.x += distX
     }
     
     /*
@@ -113,7 +126,7 @@ class Snake {
     public func followSnakeAhead(points: CGPoint) {
         let distX: CGFloat = points.x - circle.position.x
         
-        circle.position.x += distX/4
+        circle.position.x += distX/3
     }
     
     /*

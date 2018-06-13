@@ -52,11 +52,8 @@ class StartScreen: SKScene {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for touch: AnyObject in touches {
-            let point = touch.location(in: self)
-            let nodeUserTapped = atPoint(point)
-            
-            let transition:SKTransition = SKTransition.fade(withDuration: 1)
+        for _: AnyObject in touches {
+            let transition: SKTransition = SKTransition.fade(withDuration: 1)
             self.view?.presentScene(playScreen!, transition: transition)
         }
     }
