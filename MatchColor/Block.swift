@@ -12,8 +12,6 @@ import SpriteKit
 
 class Block {
     private var square: SKShapeNode
-    private var width: CGFloat = 50
-    private var height: CGFloat = 50
     private var side: CGFloat
     private var score: Int
     private var scoreLabel: SKLabelNode = SKLabelNode()
@@ -69,12 +67,8 @@ class Block {
         return scoreLabel
     }
     
-    public func getWidth() -> CGFloat {
-        return width
-    }
-    
-    public func getHeight() -> CGFloat {
-        return height
+    public func getSide() -> CGFloat {
+        return side
     }
     
     public func getScore() -> Int {
@@ -157,6 +151,20 @@ class Block {
         }
         
         return randomColor
+    }
+    
+    public func isOverlapped(snake: Snake) -> Bool {
+        let leftSide = square.position.x - side
+        let rightSide = square.position.x
+        let topSide = square.position.y - side
+        let botSide = square.position.y 
+        let snakePosition = snake.getPosition()
+        
+        if (snakePosition.x > leftSide && snakePosition.x < rightSide && snakePosition.y > botSide && snakePosition.y < topSide) {
+            return true
+        }
+        
+        return false
     }
     
 }
