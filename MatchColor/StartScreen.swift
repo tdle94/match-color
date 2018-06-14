@@ -12,19 +12,55 @@ import GameplayKit
 class StartScreen: SKScene {
     private var playLabel: SKLabelNode = SKLabelNode()
     private var circleLabel: SKShapeNode = SKShapeNode(circleOfRadius: 10)
+    private var playerScoreLabel: SKLabelNode = SKLabelNode()
+    private var playerScore: Int = 0
     private var playScreen: PlayScreen?
     
     override init(size: CGSize) {
         super.init(size: size)
-        playScreen = PlayScreen(size: size)
+        
         setupPlayLabel()
         setupCircleLabel()
+        
+        if (UserDefaults.standard.object(forKey: "highestScore") != nil) {
+            setupPlayerScoreLabel()
+        }
+        
+    }
+    
+    init(size: CGSize, playerScore_: Int) {
+        super.init(size: size)
+        playerScore = playerScore_
+        setupPlayLabel()
+        setupCircleLabel()
+        setupPlayerScoreLabel()
+    }
+    
+    private func setupPlayerScoreLabel() {
+        playerScoreLabel.fontSize = 30
+        playLabel.fontName = "AvenirNext-Bold"
+        playerScoreLabel.fontColor = SKColor.white
+        playerScoreLabel.position = CGPoint(x: frame.midX, y: frame.minY + frame.maxY/3)
+        let savedScore: Int
+        if (UserDefaults.standard.object(forKey: "highestScore") != nil) {
+            savedScore = UserDefaults.standard.object(forKey: "highestScore") as! Int
+            if (savedScore > playerScore) {
+                playerScoreLabel.text = "\(savedScore)"
+            }
+            else {
+                playerScoreLabel.text = "\(playerScore)"
+                UserDefaults.standard.set(playerScore, forKey: "highestScore")
+            }
+        }
+        else {
+            playerScoreLabel.text = "\(playerScore)"
+            UserDefaults.standard.set(playerScore, forKey: "highestScore")
+        }
     }
     
     private func setupPlayLabel() {
-        playLabel.text = "Tap To Play"
-        playLabel.name = "Play"
-        playLabel.fontSize = 60
+        playLabel.text = "Tap To Start"
+        playLabel.fontSize = 50
         playLabel.fontName = "AvenirNext-Bold"
         playLabel.fontColor = SKColor.green
         playLabel.position = CGPoint(x: frame.midX, y: frame.midY)
@@ -47,13 +83,18 @@ class StartScreen: SKScene {
     
    
     override func didMove(to view: SKView) {
-        addChild(playLabel)
-        addChild(circleLabel)
+        self.addChild(playLabel)
+        self.addChild(circleLabel)
+        self.addChild(playerScoreLabel)
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         for _: AnyObject in touches {
+            playScreen = PlayScreen(size: size)
+
             let transition: SKTransition = SKTransition.fade(withDuration: 1)
+            self.removeAllChildren()
+            self.removeAllActions()
             self.view?.presentScene(playScreen!, transition: transition)
         }
     }
@@ -77,4 +118,6 @@ class StartScreen: SKScene {
         
         return SKAction.repeatForever(blink)
     }
+    
+    deinit{print("GameScene deinited")}
 }
