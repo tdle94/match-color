@@ -24,30 +24,30 @@ class PlayScreen: SKScene {
     private var level: Int = 1
     private var scoreLabel: SKLabelNode = SKLabelNode()
     private var blockCollideIndex: Int = -1
+    private var touchBegan: CGPoint?
     
     override init(size: CGSize) {
         super.init(size: size)
         let snakeHead = Snake(x: frame.midX, y: frame.minY)
         prolongSnake(newSnake: snakeHead)
-        self.addChild(snakeHead.getScoreLabel())
-        self.setupScoreLabel()
+       // self.setupScoreLabel()
     }
     
-    public func setupScoreLabel() {
-        self.removeChildren(in: [scoreLabel])
-        let radius = snakes[0].getRadius()
-        scoreLabel.text = "\(score)"
-        scoreLabel.fontName = "AvenirNext-Bold"
-        scoreLabel.fontColor = SKColor.white
-        scoreLabel.fontSize = 20
-        scoreLabel.position.y = snakes[0].getPosition().y
-        scoreLabel.position.x = snakes[0].getPosition().x + radius * 2
-        scoreLabel.physicsBody = SKPhysicsBody(circleOfRadius: radius)
-        scoreLabel.physicsBody?.affectedByGravity = false
-        scoreLabel.physicsBody?.collisionBitMask = 0
-        self.addChild(scoreLabel)
-    }
-    
+//    public func setupScoreLabel() {
+//        self.removeChildren(in: [scoreLabel])
+//        let radius = snakes[0].getRadius()
+//        scoreLabel.text = "\(score)"
+//        scoreLabel.fontName = "AvenirNext-Bold"
+//        scoreLabel.fontColor = SKColor.white
+//        scoreLabel.fontSize = 20
+//        scoreLabel.position.y = snakes[0].getPosition().y
+//        scoreLabel.position.x = snakes[0].getPosition().x + radius * 2
+//        scoreLabel.physicsBody = SKPhysicsBody(circleOfRadius: radius)
+//        scoreLabel.physicsBody?.affectedByGravity = false
+//        scoreLabel.physicsBody?.collisionBitMask = 0
+//        self.addChild(scoreLabel)
+//    }
+//
     /*
      *   Random snake body scatter the screen.
      *   Have to collide with it to prolong the snake
@@ -314,14 +314,13 @@ class PlayScreen: SKScene {
     private func snakeHeadMismatchBody(i: Int) {
         let block = blocks[i].getBlock()
         let blockScoreLabel = blocks[i].getScoreLabel()
-        let playerScoreLabel = snakes[0].getScoreLabel()
         let snakeHead = snakes[0].getSnake()        // get snake property
         updateScore(blockScore: blocks[i].getScore())
         snakes[0].explode(playScreen: self)
-        self.removeChildren(in: [blockScoreLabel, playerScoreLabel, block, snakeHead])
+        self.removeChildren(in: [blockScoreLabel, block, snakeHead])
         blocks.remove(at: i)
         snakes.removeFirst()
-        setupScoreLabel()
+      //  setupScoreLabel()
         blockCollideIndex = i
     }
     
@@ -353,7 +352,7 @@ class PlayScreen: SKScene {
     public func updateScoreLabelPosition(points: CGPoint) {
         let distX: CGFloat = points.x - scoreLabel.position.x
         let radius = snakes[0].getRadius()
-        scoreLabel.position.x += distX + radius * 2
+        scoreLabel.position.x += distX/3 + radius * 2
     }
     
     
@@ -434,21 +433,38 @@ class PlayScreen: SKScene {
 
     }
     
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        let touch: UITouch = touches.first!
+        touchBegan = touch.location(in: self)
+    }
+   
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if (gameOver) {
+        let touch = touches.first!
+        let positionInScene = touch.location(in: self)
+        let speedX = (positionInScene.x - touchBegan!.x)/10
+        
+        // Game over or single touch (not swipe)
+        if (gameOver || (Int(touchBegan!.x) == Int(positionInScene.x))) {
             return
         }
-        let touch: UITouch = touches.first!
-        let positionInScene = touch.location(in: self)
         
+        let distXAhead = snakes[0].getPosition().x - (positionInScene.x - snakes[0].getPosition().x)/10 + speedX
+
+        // Snake body will not collide with block
         for i in 0...blocks.count-1 {
             if (blocks[i].getBlock().contains(snakes[0].getPosition())) {
                 return
             }
         }
-        snakes[0].updatePosition(points: CGPoint(x: positionInScene.x, y: positionInScene.y))
-        self.updateScoreLabelPosition(points: CGPoint(x: positionInScene.x, y: positionInScene.y))
+        
+       
+        // Confine x movement within screen frame. 
+        if (distXAhead > frame.minX && distXAhead < frame.maxX ||
+            distXAhead >= frame.maxX && positionInScene.x < self.size.width/2 ||
+            distXAhead <= frame.minX && positionInScene.x > self.size.width/2) {
+            snakes[0].updatePosition(points: CGPoint(x: positionInScene.x, y: positionInScene.y), speedX: speedX)
+        }
     }
     
     

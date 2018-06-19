@@ -45,15 +45,15 @@ class StartScreen: SKScene {
         if (UserDefaults.standard.object(forKey: "highestScore") != nil) {
             savedScore = UserDefaults.standard.object(forKey: "highestScore") as! Int
             if (savedScore > playerScore) {
-                playerScoreLabel.text = "\(savedScore)"
+                playerScoreLabel.text = "Highest score: \(savedScore)"
             }
             else {
-                playerScoreLabel.text = "\(playerScore)"
+                playerScoreLabel.text = "Highest score: \(playerScore)"
                 UserDefaults.standard.set(playerScore, forKey: "highestScore")
             }
         }
         else {
-            playerScoreLabel.text = "\(playerScore)"
+            playerScoreLabel.text = "Highest score: \(playerScore)"
             UserDefaults.standard.set(playerScore, forKey: "highestScore")
         }
     }

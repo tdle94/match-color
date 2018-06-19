@@ -14,7 +14,6 @@ class Snake {
     private var circle: SKShapeNode     // snake represent as circle
     private var radius: CGFloat = 12
     private var score: Int = 0
-    private var scoreLabel: SKLabelNode = SKLabelNode()
     private var explosion: [Explosion]
     
     init(x: CGFloat, y: CGFloat) {
@@ -74,14 +73,6 @@ class Snake {
         return score
     }
     
-    public func getScoreLabel() -> SKLabelNode {
-        return scoreLabel
-    }
-    
-    public func setScore(newScore: Int) {
-        score = newScore
-        scoreLabel.text = "\(score)"
-    }
     
     public func randomColor() -> SKColor {
         let random = arc4random_uniform(10);
@@ -139,12 +130,11 @@ class Snake {
     /*
     * User swipe left and right
     */
-    public func updatePosition(points: CGPoint) {
+    public func updatePosition(points: CGPoint, speedX: CGFloat) {
 
         let distX: CGFloat = points.x - circle.position.x
-
-        circle.position.x += distX
-        scoreLabel.position.x += distX
+        circle.position.x += distX/10 + speedX
+       
     }
     
     /*
