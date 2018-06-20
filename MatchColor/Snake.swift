@@ -131,10 +131,9 @@ class Snake {
     * User swipe left and right
     */
     public func updatePosition(points: CGPoint, speedX: CGFloat) {
-
+        
         let distX: CGFloat = points.x - circle.position.x
         circle.position.x += distX/10 + speedX
-       
     }
     
     /*

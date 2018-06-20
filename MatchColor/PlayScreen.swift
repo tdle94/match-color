@@ -14,9 +14,9 @@ class PlayScreen: SKScene {
     private var uneatenSnake = [Snake]()
     private var blocks = [Block]()
     private var mycamera: SKCameraNode = SKCameraNode()
-    private var dyValue: CGFloat = 30
+    private var dyValue: CGFloat = 100
     private var dxValue: CGFloat = 0
-    private var maxSpeedY: CGFloat = 500
+    private var maxSpeedY: CGFloat = 200
     private var minSpeedY: CGFloat = 25
     private let blocksAcrossScreen: Int = 5
     private var gameOver: Bool = false
@@ -25,29 +25,15 @@ class PlayScreen: SKScene {
     private var scoreLabel: SKLabelNode = SKLabelNode()
     private var blockCollideIndex: Int = -1
     private var touchBegan: CGPoint?
+    private var touchTime: TimeInterval?
+    private var maxScore: Int = 30
     
     override init(size: CGSize) {
         super.init(size: size)
         let snakeHead = Snake(x: frame.midX, y: frame.minY)
         prolongSnake(newSnake: snakeHead)
-       // self.setupScoreLabel()
     }
     
-//    public func setupScoreLabel() {
-//        self.removeChildren(in: [scoreLabel])
-//        let radius = snakes[0].getRadius()
-//        scoreLabel.text = "\(score)"
-//        scoreLabel.fontName = "AvenirNext-Bold"
-//        scoreLabel.fontColor = SKColor.white
-//        scoreLabel.fontSize = 20
-//        scoreLabel.position.y = snakes[0].getPosition().y
-//        scoreLabel.position.x = snakes[0].getPosition().x + radius * 2
-//        scoreLabel.physicsBody = SKPhysicsBody(circleOfRadius: radius)
-//        scoreLabel.physicsBody?.affectedByGravity = false
-//        scoreLabel.physicsBody?.collisionBitMask = 0
-//        self.addChild(scoreLabel)
-//    }
-//
     /*
      *   Random snake body scatter the screen.
      *   Have to collide with it to prolong the snake
@@ -163,8 +149,8 @@ class PlayScreen: SKScene {
 
         camera?.position.y = snakes[0].getPosition().y
         camera?.position.x = frame.midX
-        dyValue += 0.5
-        
+
+  
         
         snakes[0].translateYForever(points: CGVector(dx: 0, dy: dyValue))
         scoreLabel.physicsBody?.velocity = CGVector(dx: 0, dy: dyValue)
@@ -283,7 +269,7 @@ class PlayScreen: SKScene {
                 self.snakeHeadMismatch()
             }
             else if (snakes.count > 1 && block.contains(snakeHead.position) && snakeHead.fillColor == block.fillColor) { // colors match remove block and snake's head
-                self.snakeHeadMismatchBody(i: i)
+                self.snakeHeadBodyLeft(i: i)
             }
             else if (snakes.count == 1 && block.contains(snakeHead.position) && snakeHead.fillColor == block.fillColor) {   // only snake's head left and colors match
                 self.snakeHeadMatch(i: i)
@@ -305,13 +291,12 @@ class PlayScreen: SKScene {
         snakes[0].explode(playScreen: self)
         self.removeChildren(in: [snakeHead])
         snakes.removeFirst()
-        dyValue -= minSpeedY
     }
     
     /*
     *   Snake's head color mismatch. Still body left
     */
-    private func snakeHeadMismatchBody(i: Int) {
+    private func snakeHeadBodyLeft(i: Int) {
         let block = blocks[i].getBlock()
         let blockScoreLabel = blocks[i].getScoreLabel()
         let snakeHead = snakes[0].getSnake()        // get snake property
@@ -320,7 +305,6 @@ class PlayScreen: SKScene {
         self.removeChildren(in: [blockScoreLabel, block, snakeHead])
         blocks.remove(at: i)
         snakes.removeFirst()
-      //  setupScoreLabel()
         blockCollideIndex = i
     }
     
@@ -391,9 +375,11 @@ class PlayScreen: SKScene {
         }
         
        
-        if (dyValue > maxSpeedY) {
+        if (score >= maxScore) {
             level += 1
-            maxSpeedY *= CGFloat(level)     // increase difficulty
+            maxScore *= level
+            dyValue = maxSpeedY
+            maxSpeedY += dyValue     // increase difficulty
         }
         else if (dyValue < 0) {
             dyValue = minSpeedY
@@ -436,14 +422,16 @@ class PlayScreen: SKScene {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         let touch: UITouch = touches.first!
         touchBegan = touch.location(in: self)
+        touchTime = touch.timestamp
+        
     }
    
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         let touch = touches.first!
         let positionInScene = touch.location(in: self)
-        let speedX = (positionInScene.x - touchBegan!.x)/10
-        
+        let speedX = (positionInScene.x - touchBegan!.x) / 10
+       
         // Game over or single touch (not swipe)
         if (gameOver || (Int(touchBegan!.x) == Int(positionInScene.x))) {
             return
@@ -465,6 +453,10 @@ class PlayScreen: SKScene {
             distXAhead <= frame.minX && positionInScene.x > self.size.width/2) {
             snakes[0].updatePosition(points: CGPoint(x: positionInScene.x, y: positionInScene.y), speedX: speedX)
         }
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+       
     }
     
     
